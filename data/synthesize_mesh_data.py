@@ -9,6 +9,7 @@ import numpy as np
 
 from manifm.manifolds.mesh import Mesh, sample_simplex_uniform
 from manifm.dist import GaussianMM
+from ipdb import set_trace
 
 
 def generate_rings(nsamples, seed=0):
@@ -50,17 +51,19 @@ def generate_rings(nsamples, seed=0):
 
 
 def create_simple_bunny(replace: bool = False):
-    if not replace and os.path.exists("mesh/bunny_simple.npy"):
-        print("mesh/bunny_simple.npy exists. Skipping.")
+    if not replace and os.path.exists("/home/sh2748/riemannian-fm/data/mesh/bunny_simple.npy"):
+        print("/home/sh2748/riemannian-fm/data/mesh/bunny_simple.npy exists. Skipping.")
         return
 
     np.random.seed(777)
 
-    v, f = igl.read_triangle_mesh("mesh/bunny_simp.obj")
+    v, f = igl.read_triangle_mesh("/home/sh2748/riemannian-fm/data/mesh/bunny_simp.obj")
+    np.save("/home/sh2748/riemannian-fm/data/mesh/bunny_v.npy", v.astype(np.float32))
+    np.save("/home/sh2748/riemannian-fm/data/mesh/bunny_f.npy", f.astype(np.float32))
     vi = v[234]
     x = np.random.randn(200000, 3) * 10.0 + vi
     x = igl.signed_distance(x, v, f)[2]
-    with open("mesh/bunny_simple.npy", "wb") as f:
+    with open("/home/sh2748/riemannian-fm/data/mesh/bunny_simple.npy", "wb") as f:
         np.save(f, x.astype(np.float32))
 
 
@@ -70,10 +73,10 @@ def create_eigfn(
     if not replace and os.path.exists(f"mesh/{obj}_eigfn{idx:03d}.npy"):
         print(f"mesh/{obj}_eigfn{idx:03d}.npy exists. Skipping.")
         return
-
+    set_trace()
     np.random.seed(777)
 
-    v, f = igl.read_triangle_mesh(f"../data/mesh/{obj}_simp.obj")
+    v, f = igl.read_triangle_mesh(f"../data/mesh/{obj}_simp.obj") # v: 3D coordinates of the vertices; f: indices of the 3 nodes of the face
 
     v, f = torch.tensor(v), torch.tensor(f)
     mesh = Mesh(v, f, numeigs=idx + 20, upsample=upsample)
@@ -230,7 +233,7 @@ def pad2d(x):
 if __name__ == "__main__":
     decimate_mesh("bunny")
 
-    create_eigfn("bunny", 9, upsample=3, replace=False)
+    create_eigfn("bunny", 9, upsample=3, replace=True)
     create_eigfn("bunny", 49, upsample=3, replace=False)
     create_eigfn("bunny", 99, upsample=3, replace=False)
 

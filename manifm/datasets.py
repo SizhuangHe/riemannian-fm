@@ -12,6 +12,7 @@ from torch.utils.data import Dataset, DataLoader
 from manifm.manifolds import Sphere, FlatTorus, Mesh, SPD, PoincareBall
 from manifm.manifolds.mesh import Metric
 from manifm.utils import cartesian_from_latlon
+from ipdb import set_trace
 
 
 def load_csv(filename):
@@ -75,6 +76,7 @@ class Top500(Dataset):
 
         data = data[data["amino"] == amino][["phi", "psi"]].values.astype("float32")
         self.data = torch.tensor(data % 360 * np.pi / 180)
+        
 
     def __len__(self):
         return len(self.data)
@@ -88,6 +90,8 @@ class RNA(Dataset):
     dim = 7
 
     def __init__(self, root="data/rna"):
+        print("--------------")
+        print("Initing dataset:")
         data = pd.read_csv(
             f"{root}/aggregated_angles.tsv",
             delimiter="\t",
@@ -103,11 +107,20 @@ class RNA(Dataset):
                 "chi",
             ],
         )
+        print("The data read in is:")
+        print(type(data))
+        print("First entry:")
+        print(data.head())
 
         data = data[
             ["alpha", "beta", "gamma", "delta", "epsilon", "zeta", "chi"]
         ].values.astype("float32")
         self.data = torch.tensor(data % 360 * np.pi / 180)
+        
+        print("Dataset shape: {}".format(self.data.shape))
+        print("First entry: ")
+        print(self.data[0])
+        set_trace()
 
     def __len__(self):
         return len(self.data)
@@ -122,6 +135,7 @@ class MeshDataset(Dataset):
     def __init__(self, root: str, data_file: str, obj_file: str, scale=1 / 250):
         with open(os.path.join(root, data_file), "rb") as f:
             data = np.load(f)
+        set_trace()
 
         v, f = igl.read_triangle_mesh(os.path.join(root, obj_file))
 
@@ -426,10 +440,14 @@ def _get_dataset(cfg):
 
 def get_loaders(cfg):
     dataset, expand_factor = _get_dataset(cfg)
+    print("###### Inside get_loaders!!")
+    print(dataset)
+    print("Expand factor: {}".format(expand_factor))
 
     N = len(dataset)
     N_val = N_test = N // 10
     N_train = N - N_val - N_test
+    
 
     data_seed = cfg.seed if cfg.data_seed is None else cfg.data_seed
     if data_seed is None:
@@ -439,12 +457,12 @@ def get_loaders(cfg):
         [N_train, N_val, N_test],
         generator=torch.Generator().manual_seed(data_seed),
     )
-
+    print("Unexpanded train_set length: {}".format(len(train_set)))
     # Expand the training set (we optimize based on number of iterations anyway).
     train_set = ExpandDataset(train_set, expand_factor=expand_factor)
-
+    print("Expanded train_set length: {}".format(len(train_set)))
     train_loader = DataLoader(
-        train_set, cfg.optim.batch_size, shuffle=True, pin_memory=True, drop_last=True
+        train_set, 8, shuffle=True, pin_memory=True, drop_last=True
     )
     val_loader = DataLoader(
         val_set, cfg.optim.val_batch_size, shuffle=False, pin_memory=True
@@ -452,6 +470,12 @@ def get_loaders(cfg):
     test_loader = DataLoader(
         test_set, cfg.optim.val_batch_size, shuffle=False, pin_memory=True
     )
+    
+    print("Data batch:")
+    bs = next(iter(train_loader))
+    print(bs)
+    print(bs.shape)
+    print("###### Leaving get_loader!")
 
     return train_loader, val_loader, test_loader
 

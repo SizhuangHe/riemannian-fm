@@ -42,7 +42,7 @@ class Mesh(Manifold):
 
         if upsample > 0:
             v_np, f_np = v.cpu().numpy(), f.cpu().numpy()
-            v_np, f_np = igl.upsample(v_np, f_np, upsample)
+            v_np, f_np = igl.upsample(v_np, f_np, upsample) # upsample using midpoints of edges. -> More vertices and faces, but the overall "shape" sort of look the same
             v, f = torch.tensor(v_np).to(v), torch.tensor(f_np).to(f)
 
         v_np, f_np = v.cpu().numpy(), f.cpu().numpy()
@@ -72,7 +72,7 @@ class Mesh(Manifold):
         f_np = self.f.detach().cpu().numpy()
 
         M = igl.massmatrix(v_np, f_np, igl.MASSMATRIX_TYPE_VORONOI)
-        L = -igl.cotmatrix(v_np, f_np)
+        L = -igl.cotmatrix(v_np, f_np) # L is the Laplace-Beltrami operator
 
         if self.dirichlet_bc:
             b = igl.boundary_facets(f_np)

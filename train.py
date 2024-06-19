@@ -29,21 +29,24 @@ log = logging.getLogger(__name__)
 
 @hydra.main(version_base=None, config_path="configs", config_name="train")
 def main(cfg: DictConfig):
+    print(cfg)
     logging.getLogger("pytorch_lightning").setLevel(logging.getLevelName("INFO"))
+    log.setLevel(logging.CRITICAL)
+
 
     if cfg.get("seed", None) is not None:
         pl.utilities.seed.seed_everything(cfg.seed)
 
-    print(cfg)
-
-    print("Found {} CUDA devices.".format(torch.cuda.device_count()))
+    # print(cfg)
+    print("print cfg here")
+    # print("Found {} CUDA devices.".format(torch.cuda.device_count()))
     for i in range(torch.cuda.device_count()):
         props = torch.cuda.get_device_properties(i)
-        print(
-            "{} \t Memory: {:.2f}GB".format(
-                props.name, props.total_memory / (1024**3)
-            )
-        )
+        # print(
+        #     "{} \t Memory: {:.2f}GB".format(
+        #         props.name, props.total_memory / (1024**3)
+        #     )
+        # )
 
     keys = [
         "SLURM_NODELIST",
@@ -54,22 +57,24 @@ def main(cfg: DictConfig):
         "SLURM_LOCALID",
         "SLURM_NODEID",
     ]
-    log.info(json.dumps({k: os.environ.get(k, None) for k in keys}, indent=4))
+    # log.info(json.dumps({k: os.environ.get(k, None) for k in keys}, indent=4))
 
     cmd_str = " \\\n".join([f"python {sys.argv[0]}"] + ["\t" + x for x in sys.argv[1:]])
-    with open("cmd.sh", "w") as fout:
-        print("#!/bin/bash\n", file=fout)
-        print(cmd_str, file=fout)
+    # with open("cmd.sh", "w") as fout:
+        # print("#!/bin/bash\n", file=fout)
+        # print(cmd_str, file=fout)
 
-    log.info(f"CWD: {os.getcwd()}")
+    # log.info(f"CWD: {os.getcwd()}")
 
     # Load dataset
+    print("Get data loaders!")
+
     train_loader, val_loader, test_loader = get_loaders(cfg)
 
     # Construct model
     model = ManifoldFMLitModule(cfg)
-    print(model)
-
+    # print(model)
+    print("print model here")
     # Checkpointing, logging, and other misc.
     callbacks = [
         ModelCheckpoint(
@@ -102,6 +107,8 @@ def main(cfg: DictConfig):
                 resume=True,
             )
         )
+
+    print("Start Defining Trainer here!")
     trainer = pl.Trainer(
         max_steps=cfg.optim.num_iterations,
         accelerator="gpu",

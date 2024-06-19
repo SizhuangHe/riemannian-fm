@@ -600,16 +600,25 @@ class ManifoldFMLitModule(pl.LightningModule):
             u_t = u_t.reshape(N, self.dim)
 
         else:
-            t = torch.rand(N).reshape(-1, 1).to(x1)
+            t = torch.rand(N).reshape(-1, 1).to(x1) # One time point per pairing
 
             def cond_u(x0, x1, t):
+                print(x0)
+                print(x1)
                 path = geodesic(self.manifold, x0, x1)
                 x_t, u_t = jvp(path, (t,), (torch.ones_like(t).to(t),))
+                print(path)
+                print(t)
+                print(torch.ones_like(t).to(t))
+                print(x_t)
+                print(u_t)
                 return x_t, u_t
 
             x_t, u_t = vmap(cond_u)(x0, x1, t)
             x_t = x_t.reshape(N, self.dim)
             u_t = u_t.reshape(N, self.dim)
+            print(x_t)
+            print(u_t)
 
         diff = self.vecfield(t, x_t) - u_t
         return self.manifold.inner(x_t, diff, diff).mean() / self.dim

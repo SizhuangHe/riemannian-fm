@@ -2,6 +2,7 @@
 
 import torch
 
+# Exponential Moving Average, essentially a trick to train
 
 class EMA(torch.nn.Module):
     def __init__(self, model: torch.nn.Module, decay: float = 0.999):

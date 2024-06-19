@@ -5,11 +5,11 @@ defaults:
   - override hydra/job_logging: colorlog
   - override hydra/hydra_logging: colorlog
 
-data: volcano  # {volcano,earthquake,fire,flood}
-earth_datadir: /checkpoint/${oc.env:USER}/data/earth_data
-rna_datadir: /checkpoint/${oc.env:USER}/data/rna
-top500_datadir: /checkpoint/${oc.env:USER}/data/top500
-mesh_datadir: /checkpoint/${oc.env:USER}/data/mesh
+data: rna  # {volcano,earthquake,fire,flood}
+earth_datadir: /home/sh2748/riemannian-fm/data/earth_data
+rna_datadir: /home/sh2748/riemannian-fm/data/rna
+top500_datadir: /home/sh2748/riemannian-fm/data/top500
+mesh_datadir: /home/sh2748/riemannian-fm/data/mesh
 data_seed: null  # seed for creating the data splits. By default, uses global seed.
 
 # Only used for sampling from wrapped distributions.
@@ -40,8 +40,8 @@ model:
   metric_normalize: False
 
 optim:
-  num_iterations: 1000000
-  batch_size: 1024
+  num_iterations: 5
+  batch_size: 8
   val_batch_size: 20000
 
   scheduler: cosine
